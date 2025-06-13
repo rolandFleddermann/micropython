@@ -217,12 +217,6 @@ Methods
    pm             WiFi Power Management setting (see below for allowed values)
    =============  ===========
 
-.. method:: WLAN.eap_connect(param=value, ...)
-            
-    
-
-    
-            
 
 
 Constants
