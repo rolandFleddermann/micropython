@@ -421,6 +421,11 @@
 #define MICROPY_EMIT_RV32 (0)
 #endif
 
+// Whether to emit RISC-V RV32 Zba opcodes in native code
+#ifndef MICROPY_EMIT_RV32_ZBA
+#define MICROPY_EMIT_RV32_ZBA (0)
+#endif
+
 // Whether to enable the RISC-V RV32 inline assembler
 #ifndef MICROPY_EMIT_INLINE_RV32
 #define MICROPY_EMIT_INLINE_RV32 (0)
@@ -710,6 +715,13 @@
 // overflows from function calls made between checks.
 #ifndef MICROPY_STACK_CHECK_MARGIN
 #define MICROPY_STACK_CHECK_MARGIN (0)
+#endif
+
+// The size of a separate stack used for hard IRQ handlers, which should be
+// checked instead of the main stack when running a hard callback. 0 implies
+// there is no separate ISR stack to check.
+#ifndef MICROPY_STACK_SIZE_HARD_IRQ
+#define MICROPY_STACK_SIZE_HARD_IRQ (0)
 #endif
 
 // Whether to have an emergency exception buffer
@@ -2322,6 +2334,25 @@ typedef time_t mp_timestamp_t;
 #else
 #undef MP_WARN_CAT
 #define MP_WARN_CAT(x) (NULL)
+#endif
+
+// If true, use __builtin_mul_overflow (a gcc intrinsic supported by clang) for
+// overflow checking when multiplying two small ints. Otherwise, use a portable
+// algorithm.
+//
+// Most MCUs have a 32x32->64 bit multiply instruction, in which case the
+// intrinsic is likely to be faster and generate smaller code. The main exception is
+// cortex-m0 with __ARM_ARCH_ISA_THUMB == 1.
+//
+// The intrinsic is in GCC starting with version 5.
+#ifndef MICROPY_USE_GCC_MUL_OVERFLOW_INTRINSIC
+#if defined(__ARM_ARCH_ISA_THUMB) && (__GNUC__ >= 5)
+#define MICROPY_USE_GCC_MUL_OVERFLOW_INTRINSIC (__ARM_ARCH_ISA_THUMB >= 2)
+#elif (__GNUC__ >= 5)
+#define MICROPY_USE_GCC_MUL_OVERFLOW_INTRINSIC (1)
+#else
+#define MICROPY_USE_GCC_MUL_OVERFLOW_INTRINSIC (0)
+#endif
 #endif
 
 #endif // MICROPY_INCLUDED_PY_MPCONFIG_H
